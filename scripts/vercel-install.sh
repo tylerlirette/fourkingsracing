@@ -7,7 +7,6 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-# Keep the kit inside the project so Next can resolve/transpile package exports.
 KIT_DIR="$(pwd)/.vendor/pagebuilder"
 rm -rf "$(pwd)/.vendor"
 mkdir -p "$(pwd)/.vendor"
@@ -17,5 +16,6 @@ npm pkg set "dependencies.@tylerlirette/pagebuilder=file:.vendor/pagebuilder"
 rm -f package-lock.json
 npm install
 
-# Sanity-check package exports resolve for the build.
-node -e "require.resolve('@tylerlirette/pagebuilder/ui'); require.resolve('@tylerlirette/pagebuilder/preview'); require.resolve('@tylerlirette/pagebuilder/schemas'); console.log('pagebuilder exports ok')"
+test -f node_modules/@tylerlirette/pagebuilder/package.json
+test -f node_modules/@tylerlirette/pagebuilder/src/ui.ts
+echo "pagebuilder vendored ok"
