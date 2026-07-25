@@ -8,7 +8,7 @@ Brand content lives here (`src/lib/siteConfig.ts`, `public/`, Sanity dataset). K
 npm update @tylerlirette/pagebuilder
 ```
 
-Production installs the kit from GitHub (`github:tylerlirette/pagebuilder#main`). Vercel needs a `GITHUB_TOKEN` env var (fine-grained PAT with Contents: Read on the private `pagebuilder` repo). The install command rewrites git SSH URLs to authenticated HTTPS.
+Production installs the kit from GitHub (`github:tylerlirette/pagebuilder#main`). Vercel needs a `PAGEBUILDER_GIT_TOKEN` env var (fine-grained PAT with Contents: Read on the private `pagebuilder` repo). The install command rewrites git SSH URLs to authenticated HTTPS.
 
 Local kit development can temporarily use `"@tylerlirette/pagebuilder": "file:../pagebuilder"` (keep the `pagebuilder` repo as a sibling folder), then switch back before deploy.
 
