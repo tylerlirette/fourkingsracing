@@ -7,13 +7,18 @@ import {
   mergeSiteHeader,
   buildSiteDefaultMetadata,
 } from "@tylerlirette/pagebuilder";
+import {
+  DisableDraftMode,
+  VisualEditingControls,
+} from "@tylerlirette/pagebuilder/preview";
 import { SiteFooter, SiteHeader } from "@tylerlirette/pagebuilder/ui";
 import {
   globalStylesQuery,
   siteFooterQuery,
   siteHeaderQuery,
 } from "@tylerlirette/pagebuilder/next";
-import { getSiteSettings, sanityFetch } from "@/sanity/lib/live";
+import { draftMode } from "next/headers";
+import { getSiteSettings, SanityLive, sanityFetch } from "@/sanity/lib/live";
 import "../globals.css";
 
 export const revalidate = 60;
@@ -62,6 +67,7 @@ export default async function SiteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isDraftMode = (await draftMode()).isEnabled;
   const settings = await getSiteSettings();
   const [globalStyles, siteHeader, siteFooter] = await Promise.all([
     getGlobalStyles(),
@@ -85,6 +91,9 @@ export default async function SiteLayout({
         {children}
         <SiteFooter config={siteFooter} />
       </div>
+      <SanityLive refreshOnFocus={false} />
+      <VisualEditingControls />
+      {isDraftMode ? <DisableDraftMode /> : null}
     </>
   );
 }

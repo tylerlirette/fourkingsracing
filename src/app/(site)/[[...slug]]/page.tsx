@@ -58,7 +58,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DynamicPage({ params }: PageProps) {
   const { slug: segments } = await params;
   const slug = slugFromPathSegments(segments);
-  const [page, settings] = await Promise.all([getPageBySlug(slug, true), getSiteSettings()]);
+  const [page, settings] = await Promise.all([getPageBySlug(slug), getSiteSettings()]);
 
   if (!page) {
     notFound();
