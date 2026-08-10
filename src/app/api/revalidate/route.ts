@@ -90,6 +90,8 @@ export async function POST(request: Request) {
     revalidated.push(pathFromSlug(slug), "/sitemap.xml");
   } else if (body._type === "newsletterLead") {
     return NextResponse.json({ revalidated: false, skipped: "newsletterLead" });
+  } else if (body._type === "contactSubmission") {
+    return NextResponse.json({ revalidated: false, skipped: "contactSubmission" });
   } else {
     revalidateSiteChrome();
     revalidated.push("/", "layout", "/sitemap.xml");
