@@ -19,6 +19,13 @@ export const siteConfig = {
   footer: {
     copyrightEntity: "Four Kings Racing",
     newsletterBlurb: "Sign up for schedule updates, partner news, and appearances.",
+    credit: {
+      label: "Site by",
+      name: "Drive Motorsports International",
+      href: "https://drivemotorsportsinternational.com/",
+      logoSrc: "/images/dmi-logo.png",
+      logoAlt: "Drive Motorsports International",
+    },
   },
   instagramWidget: {
     defaultIframeSrc: undefined as string | undefined,
