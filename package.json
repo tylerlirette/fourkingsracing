@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "check-env": "node --env-file-if-exists=.env.local scripts/check-env.mjs"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",

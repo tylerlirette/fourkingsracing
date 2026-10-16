@@ -1,9 +1,10 @@
-import { pathFromSlug } from "@tylerlirette/pagebuilder";
+import { pageSlugToPath } from "@tylerlirette/pagebuilder";
 import { allPageSlugsQuery } from "@tylerlirette/pagebuilder/next";
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/siteConfig";
-import { sanityFetch } from "@/sanity/lib/live";
+import { sanityFetch } from "@/sanity";
 
+// ISR fallback only. Freshness comes from the Live Content API (SanityLive) and the signed webhook.
 export const revalidate = 60;
 
 type PageSlugRow = {
@@ -16,12 +17,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let pages: PageSlugRow[] = [{ slug: "/" }];
   try {
-    const { data: rows } = await sanityFetch({
+    const { data } = await sanityFetch({
       query: allPageSlugsQuery,
       perspective: "published",
       stega: false,
     });
-    if (rows?.length) {
+    const rows = (data || []) as PageSlugRow[];
+    if (rows.length) {
       pages = rows;
     }
   } catch {
@@ -32,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const page of pages) {
-    const path = pathFromSlug(page.slug);
+    const path = pageSlugToPath(page.slug);
     if (seen.has(path)) {
       continue;
     }

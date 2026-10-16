@@ -7,7 +7,7 @@ import { PageSections } from "@tylerlirette/pagebuilder/ui";
 import { allPageSlugsQuery } from "@tylerlirette/pagebuilder/next";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPageBySlug, getSiteSettings, sanityFetch } from "@/sanity/lib/live";
+import { getPageBySlug, getSiteSettings, sanityFetch } from "@/sanity";
 
 export const revalidate = 60;
 
