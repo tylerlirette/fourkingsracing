@@ -15,6 +15,8 @@ import {
   siteFooterQuery,
   siteHeaderQuery,
 } from "@tylerlirette/pagebuilder/next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { getSiteSettings, sanityFetch, SanityLive } from "@/sanity";
 import "../globals.css";
 
@@ -96,6 +98,8 @@ export default async function SiteLayout({
       </div>
       <SanityLive />
       <VisualEditingControls />
+      <Analytics />
+      <SpeedInsights />
     </>
   );
 }
