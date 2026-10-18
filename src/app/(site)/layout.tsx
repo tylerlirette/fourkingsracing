@@ -6,21 +6,21 @@ import {
   mergeSiteFooter,
   mergeSiteHeader,
   buildSiteDefaultMetadata,
+  UI_COPY,
 } from "@tylerlirette/pagebuilder";
-import {
-  DisableDraftMode,
-  VisualEditingControls,
-} from "@tylerlirette/pagebuilder/preview";
+import { VisualEditingControls } from "@tylerlirette/pagebuilder/preview";
 import { SiteFooter, SiteHeader } from "@tylerlirette/pagebuilder/ui";
 import {
   globalStylesQuery,
   siteFooterQuery,
   siteHeaderQuery,
 } from "@tylerlirette/pagebuilder/next";
-import { draftMode } from "next/headers";
-import { getSiteSettings, SanityLive, sanityFetch } from "@/sanity/lib/live";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { getSiteSettings, sanityFetch, SanityLive } from "@/sanity";
 import "../globals.css";
 
+// ISR fallback only. Freshness comes from the Live Content API (SanityLive) and the signed webhook.
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,7 +34,7 @@ async function getGlobalStyles() {
       query: globalStylesQuery,
       stega: false,
     });
-    return mergeGlobalStyles(data);
+    return mergeGlobalStyles(data as Parameters<typeof mergeGlobalStyles>[0]);
   } catch {
     return mergeGlobalStyles(null);
   }
@@ -45,7 +45,7 @@ async function getSiteHeader(settings: Awaited<ReturnType<typeof getSiteSettings
     const { data } = await sanityFetch({
       query: siteHeaderQuery,
     });
-    return mergeSiteHeader(data, settings);
+    return mergeSiteHeader(data as Parameters<typeof mergeSiteHeader>[0], settings);
   } catch {
     return mergeSiteHeader(null, settings);
   }
@@ -56,7 +56,7 @@ async function getSiteFooter(settings: Awaited<ReturnType<typeof getSiteSettings
     const { data } = await sanityFetch({
       query: siteFooterQuery,
     });
-    return mergeSiteFooter(data, settings);
+    return mergeSiteFooter(data as Parameters<typeof mergeSiteFooter>[0], settings);
   } catch {
     return mergeSiteFooter(null, settings);
   }
@@ -67,7 +67,6 @@ export default async function SiteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const isDraftMode = (await draftMode()).isEnabled;
   const settings = await getSiteSettings();
   const [globalStyles, siteHeader, siteFooter] = await Promise.all([
     getGlobalStyles(),
@@ -87,13 +86,20 @@ export default async function SiteLayout({
         className="site-root min-h-full flex flex-col font-sans antialiased scroll-smooth"
         style={globalStylesToCssProperties(globalStyles)}
       >
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-[length:var(--radius-button)] focus:bg-brand focus:px-4 focus:py-2 focus:text-[length:var(--text-body)] focus:font-semibold focus:text-on-brand"
+        >
+          {UI_COPY.skipToContent}
+        </a>
         <SiteHeader config={siteHeader} />
         {children}
         <SiteFooter config={siteFooter} />
       </div>
-      <SanityLive refreshOnFocus={false} />
+      <SanityLive />
       <VisualEditingControls />
-      {isDraftMode ? <DisableDraftMode /> : null}
+      <Analytics />
+      <SpeedInsights />
     </>
   );
 }

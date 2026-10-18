@@ -1,11 +1,12 @@
-import { client } from "@/sanity/lib/client";
+import { getReadToken } from "@tylerlirette/pagebuilder/next";
 import { validatePreviewUrl } from "@sanity/preview-url-secret";
 import { perspectiveCookieName } from "@sanity/preview-url-secret/constants";
 import { cookies, draftMode } from "next/headers";
 import { NextResponse } from "next/server";
+import { client } from "@/sanity";
 
 export async function GET(request: Request) {
-  const token = process.env.SANITY_API_READ_TOKEN;
+  const token = getReadToken();
   if (!token) {
     return new Response("Missing SANITY_API_READ_TOKEN", { status: 500 });
   }

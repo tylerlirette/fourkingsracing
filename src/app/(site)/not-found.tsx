@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { headingVoice } from "@tylerlirette/pagebuilder";
-import { getSiteSettings } from "@/sanity/lib/live";
+import { getSiteSettings } from "@/sanity";
 
 export default async function NotFound() {
   const settings = await getSiteSettings();

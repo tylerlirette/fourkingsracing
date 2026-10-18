@@ -1,16 +1,17 @@
-import { defineLive } from "next-sanity/live";
 import {
   createGetPageBySlug,
   createGetSiteSettings,
+  getReadToken,
 } from "@tylerlirette/pagebuilder/next";
+import { createPagebuilderClient } from "@tylerlirette/pagebuilder/next/client";
+import { createPagebuilderLive } from "@tylerlirette/pagebuilder/next/live";
 import { siteDefaults } from "@/lib/siteDefaults";
-import { client } from "./client";
-import { token } from "./token";
 
-export const { sanityFetch, SanityLive } = defineLive({
+export const client = createPagebuilderClient();
+
+export const { sanityFetch, SanityLive } = createPagebuilderLive({
   client,
-  serverToken: token || false,
-  browserToken: token || false,
+  token: getReadToken(),
 });
 
 export const getSiteSettings = createGetSiteSettings({

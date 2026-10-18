@@ -6,7 +6,9 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "check-env": "node --env-file-if-exists=.env.local scripts/check-env.mjs"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
@@ -14,7 +16,9 @@
     "@sanity/color-input": "^6.0.8",
     "@sanity/image-url": "^2.1.1",
     "@sanity/vision": "^5.22.0",
-    "@tylerlirette/pagebuilder": "github:tylerlirette/pagebuilder#v0.2.1",
+    "@tylerlirette/pagebuilder": "0.2.1",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "next": "16.2.4",
     "next-sanity": "^12.3.1",
     "react": "19.2.4",

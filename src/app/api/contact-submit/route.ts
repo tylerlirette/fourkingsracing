@@ -1,108 +1,74 @@
-import { createClient } from "next-sanity";
+import { UI_COPY } from "@tylerlirette/pagebuilder";
+import {
+  createRateLimiter,
+  getClientIp,
+  getWriteClient,
+  isFormConsentGiven,
+  isHoneypotTriggered,
+  isValidEmail,
+  readFormBody,
+} from "@tylerlirette/pagebuilder/next-api";
 import { NextResponse } from "next/server";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX_REQUESTS = 5;
-/** In-memory limiter — best-effort per server instance. */
-const rateLimitStore = new Map<string, number[]>();
+const isRateLimited = createRateLimiter({ limit: 5, windowMs: 60_000 });
 
-type ContactBody = {
-  name?: string;
-  email?: string;
-  phone?: string;
-  message?: string;
-  source?: string;
-  company?: string;
-};
-
-function getClientIp(request: Request): string {
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  if (forwardedFor) {
-    const [firstIp] = forwardedFor.split(",");
-    return firstIp?.trim() || "unknown";
-  }
-
-  return request.headers.get("x-real-ip") || "unknown";
-}
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recentRequests = (rateLimitStore.get(ip) || []).filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
-  );
-
-  if (recentRequests.length >= RATE_LIMIT_MAX_REQUESTS) {
-    rateLimitStore.set(ip, recentRequests);
-    return true;
-  }
-
-  recentRequests.push(now);
-  rateLimitStore.set(ip, recentRequests);
-  return false;
+function text(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export async function POST(request: Request) {
-  const ip = getClientIp(request);
-  if (isRateLimited(ip)) {
+  if (isRateLimited(getClientIp(request))) {
     return NextResponse.json(
-      { error: "Too many requests. Please wait a minute and try again." },
+      { error: UI_COPY.forms.rateLimited },
       { status: 429 }
     );
   }
 
-  let body: ContactBody;
-
+  let body: Record<string, unknown>;
   try {
-    body = (await request.json()) as ContactBody;
+    body = await readFormBody(request);
   } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    return NextResponse.json({ error: UI_COPY.forms.invalidBody }, { status: 400 });
   }
 
-  const name = body.name?.trim() ?? "";
-  const email = body.email?.trim().toLowerCase() ?? "";
-  const phone = body.phone?.trim() ?? "";
-  const message = body.message?.trim() ?? "";
-  const source = body.source?.trim() || "contactForm";
-  const company = body.company?.trim() ?? "";
-
-  // Honeypot field: real users should not fill this.
-  if (company) {
+  if (isHoneypotTriggered(body)) {
     return NextResponse.json({ ok: true });
   }
 
-  if (!name) {
-    return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
+  if (!isFormConsentGiven(body.consent)) {
+    return NextResponse.json({ error: UI_COPY.forms.consentRequired }, { status: 400 });
   }
 
-  if (!EMAIL_REGEX.test(email)) {
-    return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+  const name = text(body.name);
+  const email = text(body.email).toLowerCase();
+  const phone = text(body.phone);
+  const message = text(body.message);
+  const source = text(body.source) || "contactForm";
+
+  if (!name) {
+    return NextResponse.json({ error: UI_COPY.forms.contact.nameRequired }, { status: 400 });
+  }
+
+  if (!isValidEmail(email)) {
+    return NextResponse.json({ error: UI_COPY.forms.emailInvalid }, { status: 400 });
   }
 
   if (!message) {
-    return NextResponse.json({ error: "Please enter a message." }, { status: 400 });
+    return NextResponse.json({ error: UI_COPY.forms.contact.messageRequired }, { status: 400 });
   }
 
   if (name.length > 200 || email.length > 320 || phone.length > 40 || message.length > 5000) {
-    return NextResponse.json({ error: "One or more fields are too long." }, { status: 400 });
+    return NextResponse.json({ error: UI_COPY.forms.tooLong }, { status: 400 });
   }
 
-  const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
-  const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET;
-  const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || "2026-04-28";
-  const token = process.env.SANITY_API_WRITE_TOKEN;
-
-  if (!projectId || !dataset || !token) {
-    return NextResponse.json({ error: "Contact form is not configured yet." }, { status: 503 });
+  let client;
+  try {
+    client = getWriteClient();
+  } catch {
+    return NextResponse.json({ error: UI_COPY.forms.contact.notConfigured }, { status: 503 });
   }
 
-  const client = createClient({
-    projectId,
-    dataset,
-    apiVersion,
-    token,
-    useCdn: false,
-  });
+  const submittedAt = new Date().toISOString();
 
   try {
     await client.create({
@@ -112,12 +78,14 @@ export async function POST(request: Request) {
       ...(phone ? { phone } : {}),
       message,
       source,
-      submittedAt: new Date().toISOString(),
+      submittedAt,
+      consent: true,
+      consentAt: submittedAt,
       userAgent: request.headers.get("user-agent") ?? "",
     });
 
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Could not send your message. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: UI_COPY.forms.contact.fallbackError }, { status: 500 });
   }
 }

@@ -44,3 +44,6 @@ next-env.d.ts
 # Private kit checkout used by Vercel install
 .vendor/
 
+
+# Keep the env template committed
+!.env.example
