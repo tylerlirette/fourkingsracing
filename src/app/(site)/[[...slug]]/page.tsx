@@ -2,6 +2,7 @@ import {
   slugFromPathSegments,
   staticParamsFromSlug,
   buildPageMetadata,
+  UI_COPY,
 } from "@tylerlirette/pagebuilder";
 import { PageSections } from "@tylerlirette/pagebuilder/ui";
 import { allPageSlugsQuery } from "@tylerlirette/pagebuilder/next";
@@ -9,6 +10,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPageBySlug, getSiteSettings, sanityFetch } from "@/sanity";
 
+// ISR fallback only. Freshness comes from the Live Content API (SanityLive) and the signed webhook.
 export const revalidate = 60;
 
 type PageProps = {
@@ -40,11 +42,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     page = await getPageBySlug(slug, false);
   } catch {
-    return { title: "Unavailable" };
+    return { title: UI_COPY.unavailableTitle };
   }
 
   if (!page) {
-    return { title: "Page not found" };
+    return { title: UI_COPY.notFoundTitle };
   }
 
   return buildPageMetadata({
@@ -65,7 +67,7 @@ export default async function DynamicPage({ params }: PageProps) {
   }
 
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <PageSections
         page={page}
         instagramWidgetSrc={settings.instagramWidget.defaultIframeSrc}

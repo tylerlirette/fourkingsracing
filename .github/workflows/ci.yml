@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - master
 
 permissions:
   contents: read
@@ -17,6 +18,7 @@ jobs:
       # when these are empty. An unreachable Sanity API is fine: builds fall back to defaults.
       NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID }}
       NEXT_PUBLIC_SANITY_DATASET: ${{ vars.NEXT_PUBLIC_SANITY_DATASET }}
+
     steps:
       - uses: actions/checkout@v4
 
